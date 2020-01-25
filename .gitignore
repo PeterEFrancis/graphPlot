@@ -1,0 +1,15 @@
+**/.DS_Store
+**/__pycache__
+
+dist
+build
+graph_plot.egg-info
+build_instructions.txt
+
+click_to_build
+
+test.ipynb
+test-checkpoint.ipynb
+
+
+saved
