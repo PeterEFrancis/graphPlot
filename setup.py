@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 setup(
     name="graph-plot",
     packages=["graph-plot"],
-    version="0.0.2",
+    version="0.0.3",
     author="Peter Francis",
     author_email="franpe02@gettysburg.edu",
     description="Plot (di)graphs using a timestep simulation of charged particles and springs",
