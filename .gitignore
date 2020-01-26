@@ -3,7 +3,6 @@
 
 dist
 build
-graphPlot.egg-info
 build_instructions.txt
 
 click_to_build
