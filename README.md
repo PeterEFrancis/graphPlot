@@ -1,6 +1,6 @@
 # graphPlot
 
-<img src="docs/example.png" width="300px" />
+<img src="docs/example.png" width="150px" />
 
 
 ---
