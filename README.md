@@ -1,6 +1,6 @@
 # graphPlot
 
-![](examples.png)
+![](docs/examples.png)
 
 A python module for plotting (directed) Graphs using a simulation of springs
 and charged particles
