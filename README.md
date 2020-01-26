@@ -13,7 +13,7 @@ $ pip install graphPlot --upgrade
 
 or
 
-```
+```bash
 $ python3 -m pip install --user graphPlot --upgrade
 ```
 
