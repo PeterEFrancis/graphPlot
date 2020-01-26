@@ -302,7 +302,7 @@ class Graph(object):
                     connection = self.springBoard.nodes[connectionIDNumber - 1]
                     X2, Y2 = connection.pos[0], connection.pos[1]
                     d = np.sqrt((X2 - X1) ** 2 + (Y2 - Y1) ** 2)
-                    ax.annotate("", xytext=(X1, Y1), xy=(X2, Y2), arrowprops={"width": 0.3, "shrink": 1.2 * r / d})
+                    ax.annotate("", xytext=(X1, Y1), xy=(X2, Y2), arrowprops={"width": 0.01, "shrink": 1.2 * r / d})
             else: # lines
                 for connection in node.connections:
                     if node.ID < connection.ID: # this makes each connection only graph once
@@ -327,5 +327,5 @@ class Graph(object):
         Randomly reset node positions and let time step simulation resettle
         """
         self.springBoard.random_reset()
-        self.springBoard.settle(0.1)
+        self.springBoard.move(0.1,8000)
         self._normalize_pos()

@@ -1,27 +1,6 @@
 # graphPlot
 
----
-<div>
-  <div style="display: inline-block;">
-    <img src="docs/example-1.png" width="150px" />
-  </div>
-  <div style="display: inline-block;">
-    <img src="docs/example-2.png" width="150px" />
-  </div>
-  <div style="display: inline-block;">
-    <img src="docs/example-3.png" width="150px" />
-  </div>
-  <div style="display: inline-block;">
-    <img src="docs/example-4.png" width="150px" />
-  </div>
-  <div style="display: inline-block;">
-    <img src="docs/example-5.png" width="150px" />
-  </div>
-  <div style="display: inline-block;">
-    <img src="docs/example-6.png" width="150px" />
-  </div>
-</div>
----
+![](examples.png)
 
 A python module for plotting (directed) Graphs using a simulation of springs
 and charged particles

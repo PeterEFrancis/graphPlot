@@ -13,3 +13,6 @@ test.ipynb
 .ipynb_checkpoints
 
 saved
+
+docs/example-*.png
+docs/examples.psd
