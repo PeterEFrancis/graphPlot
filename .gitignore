@@ -9,11 +9,9 @@ build_instructions.txt
 click_to_build
 
 test.ipynb
-test-checkpoint.ipynb
+info.ipynb
 
 
 .ipynb_checkpoints
-
-
 
 saved
