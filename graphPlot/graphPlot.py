@@ -94,7 +94,8 @@ class Node(object):
 class SpringBoard(object):
     def __init__(self, nodesDict: dict, k: float, Q: float):
         """
-        Construct a SpringBoard object
+        Construct a SpringBoard object.
+        If the nodes are all centered at the orgin, spread them out.
 
         Args:
             nodes - an adjacency dictionary of first positive integers
@@ -120,10 +121,13 @@ class SpringBoard(object):
         self.k = k
         self.Q = Q
 
-        # add positions to nodes
-        for (node, i) in zip(self.nodes, range(len(self.nodes))):
-            arg = 2 * np.pi * i / len(nodesDict)
-            node.setCoord(np.array([np.cos(arg), np.sin(arg)]))
+        # check to see if all points are at 0
+        testBool = True
+        for node in self.nodes:
+            testBool = testBool and all(node.pos == np.array([0.0, 0.0]))
+        #if they are all 0, spread them Construct
+        if testBool:
+            self.encircle_nodes()
 
     def _increment(self, deltaT: float):
         """
@@ -132,6 +136,7 @@ class SpringBoard(object):
         Args:
             deltaT - simulation time step
         """
+
         for node in self.nodes:
 
             # add the spring forces
@@ -164,6 +169,7 @@ class SpringBoard(object):
             deltaT - simulation time step
             n - number of time steps
         """
+
         for i in range(n):
             self._increment(deltaT)
 
@@ -222,6 +228,15 @@ class SpringBoard(object):
         for node in self.nodes:
             node.pos = np.array([r.uniform(0, 1), r.uniform(0, 1)])
 
+    def encircle_nodes(self):
+        """
+        Arrange node positions into a circle.
+        """
+        for (node, i) in zip(self.nodes, range(len(self.nodes))):
+            arg = 2 * np.pi * i / len(self.nodes)
+            node.setCoord(np.array([np.cos(arg), np.sin(arg)]))
+
+
 
 class Graph(object):
     def __init__(self, nodesDict: dict, isDigraph: bool = False):
@@ -251,7 +266,11 @@ class Graph(object):
             graphNodesDict[nodeA] = [nodeB for nodeB in nodesDict if (connectedToA(nodeB) and nodeA != nodeB)]
 
         # make adjacency matrix
-        self.adjacencyMatrix = np.vstack([np.array([1 if nodeB in graphNodesDict[nodeA] else 0 for nodeB in graphNodesDict]) for nodeA in graphNodesDict]).T
+        if isDigraph:
+            self.adjacencyMatrix = np.vstack([np.array([1 if nodeB in self.nodesDict[nodeA] else 0 for nodeB in self.nodesDict]) for nodeA in self.nodesDict]).T
+        else:
+            self.adjacencyMatrix = np.vstack([np.array([1 if nodeB in graphNodesDict[nodeA] else 0 for nodeB in graphNodesDict]) for nodeA in graphNodesDict]).T
+
 
         # use SpringBoard to find good coordinates
         self.springBoard = SpringBoard(graphNodesDict, 1, -1)
