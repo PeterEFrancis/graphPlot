@@ -17,7 +17,13 @@ or
 $ python3 -m pip install --user graphPlot --upgrade
 ```
 
-PyPi release page: https://pypi.org/project/graphPlot/.
-
 See [info](https://francisp336.github.io/graphPlot/) for a
 **mathematical explanation**, **examples**, and **class definitions**.
+
+
+
+
+
+**TODO:**
+- [ ] Add `__repr__`s for other classes
+- [ ] Add checks in constructors for
