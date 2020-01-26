@@ -5,7 +5,7 @@
 A python module for plotting (directed) Graphs using a simulation of springs
 and charged particles
 
-See [info](https://github.com/francisp336/graphPlot/blob/master/docs/index.ipynb)
+See [info](https://github.com/francisp336/graphPlot/blob/master/docs/info.ipynb)
  for a **mathematical explanation**, **examples**, and **class definitions**.
 
 You can import this module with PIP.
