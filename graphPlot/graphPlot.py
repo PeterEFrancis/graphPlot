@@ -5,10 +5,6 @@ import random as r
 
 
 class Node(object):
-    """
-    Node object
-    """
-
     def __init__(self, ID: int = -1, connections: list = None, pos: np.array = None):
         """
         Initialize Node object.
@@ -62,10 +58,13 @@ class Node(object):
 
     def distanceTo(self, node: "Node"):
         """
-        Return distance to node
+        Find the distance to node
 
         Args:
             node - Node object
+
+        Return:
+            Distance to node
         """
         return np.sqrt((self.pos[0] - node.pos[0]) ** 2 + (self.pos[1] - node.pos[1]) ** 2)
 
@@ -76,6 +75,9 @@ class Node(object):
 
         Args:
             node - Node object
+
+        Return:
+            boolean truth value of equality
         """
         boolID = self.ID == node.ID
         boolPos = all(self.pos == node.pos)
@@ -90,10 +92,6 @@ class Node(object):
 
 
 class SpringBoard(object):
-    """
-    SpringBoard object
-    """
-
     def __init__(self, nodesDict: dict, k: float, Q: float):
         """
         Construct a SpringBoard object
@@ -226,10 +224,6 @@ class SpringBoard(object):
 
 
 class Graph(object):
-    """
-    Graph object
-    """
-
     def __init__(self, nodesDict: dict, isDigraph: bool = False):
         """
         Construct Graph object
@@ -238,6 +232,9 @@ class Graph(object):
             nodesDict - adjacency of first positive integers
             isGigraph (bool) - boolean value to declare diGraph type
         """
+
+        self.nodesDict = nodesDict
+        self.isDigraph = isDigraph
 
         # check to make sure that the keys and values are not skipping any
         # positive integers and that they are the first positive integers
@@ -285,25 +282,35 @@ class Graph(object):
         Args:
             saveAs - (optional) a file path to save the plot
         """
+
         fig, ax = plt.subplots(figsize=(7, 7))
         plt.axis("off")
         ax.set_aspect("equal")
         r = 0.04
+
         for node in self.springBoard.nodes:
             X1, Y1 = node.pos[0], node.pos[1]
             # TODO: structure allows for other names, but circles won't adjust
+
             # add circle
             ax.add_artist(plt.Circle((X1, Y1), r, color="b", fill=False, clip_on=False))
             ax.text(X1, Y1, str(node.ID), fontsize=15, horizontalalignment="center", verticalalignment="center")
+
             # add lines per circle
-            for connection in node.connections:
-                # this makes each connection only graph once
-                if node.ID < connection.ID:
+            if self.isDigraph: # arrows
+                for connectionIDNumber in self.nodesDict[node.ID]:
+                    connection = self.springBoard.nodes[connectionIDNumber - 1]
                     X2, Y2 = connection.pos[0], connection.pos[1]
                     d = np.sqrt((X2 - X1) ** 2 + (Y2 - Y1) ** 2)
-                    x = r * ((X2 - X1) / d)
-                    y = r * ((Y2 - Y1) / d)
-                    ax.annotate("", xytext=(X1 + x, Y1 + y), xy=(X2 - x, Y2 - y), arrowprops={"arrowstyle": "-"})
+                    ax.annotate("", xytext=(X1, Y1), xy=(X2, Y2), arrowprops={"width": 0.3, "shrink": 1.2 * r / d})
+            else: # lines
+                for connection in node.connections:
+                    if node.ID < connection.ID: # this makes each connection only graph once
+                        X2, Y2 = connection.pos[0], connection.pos[1]
+                        d = np.sqrt((X2 - X1) ** 2 + (Y2 - Y1) ** 2)
+                        x = r * ((X2 - X1) / d)
+                        y = r * ((Y2 - Y1) / d)
+                        ax.annotate("", xytext=(X1 + x, Y1 + y), xy=(X2 - x, Y2 - y), arrowprops={"arrowstyle": "-"})
         if saveAs != "_":
             plt.savefig(saveAs)
 
@@ -322,96 +329,3 @@ class Graph(object):
         self.springBoard.random_reset()
         self.springBoard.settle(0.1)
         self._normalize_pos()
-
-
-
-
-
-
-
-# TODO : simplify this to just depend on the Graph Class
-class DiGraph(object):
-    """
-    DiGraph object
-    """
-
-    def __init__(self, nodesDict: dict):
-        """
-        Construct DiGraph object
-        nodesDict - adjacency dictionary of first positive integers
-        """
-
-        # check to make sure that the keys and values are not skipping any
-        # positive integers and that they are the first positive integers
-        testIDs = []
-        for key in nodesDict:
-            testIDs += [key] + [value for value in nodesDict[key]]
-        if set(testIDs) != set(range(1, len(list(set(testIDs))) + 1)):
-            raise ValueError("Error in node keys and values: " + "missing number or disallowed character.")
-
-        self.nodesDict = nodesDict
-
-        # make adjacency matrix
-        self.adjacencyMatrix = np.vstack([np.array([1 if nodeB in nodesDict[nodeA] else 0 for nodeB in nodesDict]) for nodeA in nodesDict]).T
-
-        # use SpringBoard to find good coordinates
-        self.springBoard = SpringBoard(nodesDict, 1, -1)
-        self.springBoard.move(0.1, 8000)
-        self._normalize_pos()
-
-    def _normalize_pos(self):
-        """
-        Normalize the positions springboard nodes for plotting
-        """
-        # collect all X and Y coordinates
-        X = [node.pos[0] for node in self.springBoard.nodes]
-        Y = [node.pos[1] for node in self.springBoard.nodes]
-        # sutract out minmum of each
-        for node in self.springBoard.nodes:
-            node.pos -= np.array([min(X), min(Y)])
-        # recollect all X and Y coordinates
-        X = [node.pos[0] for node in self.springBoard.nodes]
-        Y = [node.pos[1] for node in self.springBoard.nodes]
-        # Scale by a little more than the max of each collection, X and Y
-        for node in self.springBoard.nodes:
-            node.pos = np.array([node.pos[0] / (max(X) + 1), node.pos[1] / (max(Y) + 1)])
-
-    def plot(self, saveAs: str = "_"):
-        """
-        Plot the Graph
-        saveAs - (optional) a file path to save the plot
-        """
-        fig, ax = plt.subplots(figsize=(7, 7))
-        plt.axis("off")
-        ax.set_aspect("equal")
-        r = 0.04
-        for node in self.springBoard.nodes:
-            X1, Y1 = node.pos[0], node.pos[1]
-            # TODO: structure allows for other names, but circles won't adjust
-            # add circle
-            ax.add_artist(plt.Circle((X1, Y1), r, color="b", fill=False, clip_on=False))
-            ax.text(X1, Y1, str(node.ID), fontsize=15, horizontalalignment="center", verticalalignment="center")
-            # add lines per circle, only the ones that the node connects to
-            for connectionIDNumber in self.nodesDict[node.ID]:
-                connection = self.springBoard.nodes[connectionIDNumber - 1]
-                X2, Y2 = connection.pos[0], connection.pos[1]
-                d = np.sqrt((X2 - X1) ** 2 + (Y2 - Y1) ** 2)
-                ax.annotate("", xytext=(X1, Y1), xy=(X2, Y2), arrowprops={"width": 0.3, "shrink": 1.2 * r / d})
-        if saveAs != "_":
-            plt.savefig(saveAs)
-
-    def force(self, n: int):
-        """
-        Move forward time step simulation
-        n - number of time steps
-        """
-        self.springBoard.move(0.1, n)
-        self._normalize_pos()
-
-    def random_reset(self):
-#         """
-#         Randomly reset node positions and let time step simulation resettle
-#         """
-#         self.springBoard.random_reset()
-#         self.springBoard.settle(0.1)
-#         self._normalize_pos()

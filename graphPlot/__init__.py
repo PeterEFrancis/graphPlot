@@ -4,4 +4,9 @@ import matplotlib.patches as ptc
 import random as r
 
 
-from .diGraph import *
+from .graphPlot import *
+
+
+
+# def _unit_test():
+    # TODO define unit test
