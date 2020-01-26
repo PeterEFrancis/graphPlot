@@ -1,7 +1,14 @@
 # graphPlot
 
-<img src="docs/example.png" width="150px" />
+---
 
+<img src="docs/example-1.png" width="150px" />
+<img src="docs/example-2.png" width="150px" />
+<img src="docs/example-3.png" width="150px" />
+<img src="docs/example-4.png" width="150px" />
+<img src="docs/example-5.png" width="150px" />
+<img src="docs/example-6.png" width="150px" />
+<img src="docs/example-7.png" width="150px" />
 
 ---
 
