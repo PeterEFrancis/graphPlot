@@ -25,11 +25,11 @@ $ python3 -m pip install --user graphPlot --upgrade
 **TODO:**
 - [ ] Upgrade to "back-two" approximation in `SpringBoard`
 - [ ] Add custom start position to `SpringBoard`
-- [ ] Make normalization "less invasive"
 - [ ] Add animation maker
 - [ ] Make specific physical examples
 
 **Long term TODO:**
+- [ ] Make normalization "less invasive"
 - [ ] Cythonize
 - [ ] Integrate planarity tests
 - [ ] Add add self loop arrows
