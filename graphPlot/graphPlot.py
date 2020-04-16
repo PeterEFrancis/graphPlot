@@ -246,7 +246,7 @@ class Graph(object):
 
         Args:
             nodesDict - adjacency of first positive integers
-            isGigraph (bool) - boolean value to declare diGraph type
+            isDigraph (bool) - boolean value to declare Graph type
         """
 
         self.nodesDict = nodesDict
