@@ -30,6 +30,8 @@ $ python3 -m pip install --user graphPlot --upgrade
 - [ ] Make specific physical examples
 
 **Long term TODO:**
+- [ ] Cythonize
+- [ ] Integrate planarity tests
 - [ ] Add add self loop arrows
 - [ ] Add curved arrows
 - [ ] Add copy constructors
