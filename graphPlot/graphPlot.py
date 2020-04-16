@@ -91,6 +91,7 @@ class Node(object):
         return f"<Node {self.ID} @ ({round(self.pos[0],3)},{round(self.pos[1],3)})>"
 
 
+
 class SpringBoard(object):
     def __init__(self, nodesDict: dict, k: float, Q: float):
         """

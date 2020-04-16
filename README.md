@@ -23,10 +23,16 @@ $ python3 -m pip install --user graphPlot --upgrade
 
 
 **TODO:**
-- [ ] Add `__repr__`s for other classes
-- [ ] Add GIF maker
+- [ ] Upgrade to "back-two" approximation in `SpringBoard`
+- [ ] Add custom start position to `SpringBoard`
+- [ ] Make normalization "less invasive"
+- [ ] Add animation maker
+- [ ] Make specific physical examples
+
+**Long term TODO:**
 - [ ] Add add self loop arrows
 - [ ] Add curved arrows
 - [ ] Add copy constructors
 - [ ] Add `__eq__`s for other classes
+- [ ] Add `__repr__`s for other classes
 - [ ] Check if the check in move() is most effective
