@@ -23,12 +23,13 @@ $ python3 -m pip install --user graphPlot --upgrade
 
 
 **TODO:**
-- [ ] Upgrade to "back-two" approximation in `SpringBoard`
-- [ ] Add custom start position to `SpringBoard`
+- [ ] Upgrade to "second order backwards" approximation in `SpringBoard`
+- [X] Add custom start position to `SpringBoard`
 - [ ] Add animation maker
 - [ ] Make specific physical examples
 
 **Long term TODO:**
+- [ ] Gravitational force is just to take care of disconnected graphs - is it necessary?
 - [ ] Make normalization "less invasive"
 - [ ] Cythonize
 - [ ] Integrate planarity tests
