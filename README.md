@@ -42,9 +42,3 @@ $ python3 -m pip install --user graphPlot --upgrade
 - [ ] Add `__eq__`s for other classes
 - [ ] Add `__repr__`s for other classes
 - [ ] Check if the check in move() is most effective
-
-
-
-<br><br><br>
-
-![](animate.mov)

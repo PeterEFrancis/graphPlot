@@ -10,6 +10,8 @@ click_to_build
 
 test.ipynb
 
+*.mov
+
 .ipynb_checkpoints
 
 saved
