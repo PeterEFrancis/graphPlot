@@ -1,9 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as ptc
+import matplotlib.animation as animation
 import random as r
 from typing import *
-import copy
+
+
 
 class Node(object):
     def __init__(self, ID: int = -1, connections: list = None, pos: np.array = None):
@@ -19,7 +21,7 @@ class Node(object):
         self.connections = [] if connections is None else connections
         self.degree = 0 if connections is None else len(connections)
         self.pos = np.array([0.0, 0.0]) if pos is None else pos
-        self.displacement = np.array([[0.0, 0.0],[0.0,0.0],[0.0,0.0]])
+        self.pastPos = np.array([[0.0,0.0],[0.0,0.0]])
 
 
     def set_coord(self, pos: np.array):
@@ -88,7 +90,7 @@ class Node(object):
 
 
 class SpringBoard(object):
-    def __init__(self, nodesDict: Dict[int, List[int]], k: float, Q: float, g: float, nodePosDict: Dict[int, Tuple[float, float]] = {}):
+    def __init__(self, nodesDict: Dict[int, List[int]], k: float, Q: float, nodePosDict: Dict[int, Tuple[float, float]] = {}):
         """
         Construct a SpringBoard object.
         If the nodes are all centered at the orgin, spread them out.
@@ -120,8 +122,8 @@ class SpringBoard(object):
             raise ValueError("k must be positive.")
         if (Q >= 0):
             raise ValueError("Q must be negative.")
-        if (g >= 0):
-            raise ValueError("g must be negative.")
+        # if (g >= 0):
+        #     raise ValueError("g must be negative.")
 
 
         # deal with nodePosDict if it is not empty
@@ -160,8 +162,7 @@ class SpringBoard(object):
         # set spring and field constants
         self.k = k
         self.Q = Q
-        self.g = g
-
+        # self.g = g
 
     def _increment(self, deltaT: float):
         """
@@ -172,13 +173,14 @@ class SpringBoard(object):
         """
 
         for node in self.nodes:
+            change = np.array([0.0, 0.0])
 
             # add the spring forces
             for connection in node.connections:
                 deltaD = deltaT ** 2 * self.k * (1 - node.distance_to(connection)) / node.degree
                 vec = node.pos - connection.pos
                 vec *= deltaD / np.sqrt(vec[0] ** 2 + vec[1] ** 2)
-                node.displacement[0] += vec
+                change += vec
 
             # add the repellant forces
             for other in self.nodes:
@@ -186,20 +188,18 @@ class SpringBoard(object):
                     deltaD = self.Q * (deltaT / node.distance_to(other)) ** 2 * other.degree
                     vec = other.pos - node.pos
                     vec *= deltaD / np.sqrt(vec[0] ** 2 + vec[1] ** 2)
-                    node.displacement[0] += vec
+                    change += vec
 
             # add gravitational force
-            # node.displacement[0] += node.pos * node.degree * self.g / np.sqrt(0.001 + sum(node.pos ** 2))
+            # change += node.pos * node.degree * self.g / np.sqrt(0.001 + sum(node.pos ** 2))
 
             # set displacemnts
-            # node.displacement[0] += 2 * node.displacement[1] - node.displacement[2] # this is the "second order backwards" appromimation step
-            node.pos += node.displacement[0]
+            node.pos += change
 
-            # shift stored displacements for next iteration
-            node.displacement[2] = node.displacement[1].copy()
-            node.displacement[1] = node.displacement[0].copy()
-            node.displacement[0] = np.array([0.0, 0.0])
-
+            # the "second order backwards" appromimation step
+            # node.pos += node.pastPos[0] - node.pastPos[1]
+            # node.pastPos[1] = node.pastPos[0].copy()
+            # node.pastPos[0] = node.pos.copy()
 
     def move(self, deltaT: float, n: int):
         """
@@ -275,6 +275,43 @@ class SpringBoard(object):
             arg = 2 * np.pi * i / len(self.nodes)
             node.set_coord(np.array([np.cos(arg), np.sin(arg)]))
 
+    def animate(self, deltaT: float, numFrames: int, movesPerFrame: int, xlim: float, ylim: float, size: Tuple[int, int]):
+        """
+        Increment timestep simulation until objects have settled
+
+        Args:
+            deltaT - simulation time step
+            numFrames - number of frames in the animation
+            movesPerFrame - value of `n` when `move(deltaT, n)` is called between frames
+            xlim - [X lower bound, X upper bound]
+            ylim - [Y lower bound, Y upper bound]
+            size - figsize (x,y)
+        Return:
+            animation object
+        """
+
+        fig, ax = plt.subplots(figsize=size)
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+
+        edgeLines = [None] * len(self.edges)
+        for i in range(len(self.edges)):
+            A, B = self.edges[i]
+            edgeLines[i], = ax.plot([A.pos[0], B.pos[0]],[A.pos[1], B.pos[1]])
+        nodePoints, = ax.plot([node.pos[0] for node in self.nodes],[node.pos[1] for node in self.nodes], "o")
+
+        def _next_frame(start):
+            nodePoints.set_data([node.pos[0] for node in self.nodes],[node.pos[1] for node in self.nodes])
+            for i in range(len(self.edges)):
+                A, B = self.edges[i]
+                edgeLines[i].set_data([A.pos[0], B.pos[0]],[A.pos[1], B.pos[1]])
+            if start:
+                self.move(deltaT, movesPerFrame)
+            start = True
+
+        start = False
+
+        return animation.FuncAnimation(fig, _next_frame, fargs = (start), frames=numFrames, interval=30)
 
 
 class Graph(object):

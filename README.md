@@ -25,10 +25,13 @@ $ python3 -m pip install --user graphPlot --upgrade
 **TODO:**
 - [ ] Upgrade to "second order backwards" approximation in `SpringBoard`
 - [X] Add custom start position to `SpringBoard`
-- [ ] Add animation maker
+- [X] Add animation maker
 - [ ] Make specific physical examples
 
 **Long term TODO:**
+- [ ] add smart detect of max size for animation
+- [ ] Change `_increment()` to use matrix operations
+- [ ] add fixed node capabilities
 - [ ] Gravitational force is just to take care of disconnected graphs - is it necessary?
 - [ ] Make normalization "less invasive"
 - [ ] Cythonize
