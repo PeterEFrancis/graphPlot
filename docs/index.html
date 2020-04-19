@@ -13131,26 +13131,26 @@ The $K_5$ graph is not planar:</p>
 <li>The Four Color Theorem</li>
 <li>$K_5$ and $K_{3,3}$ as subgraphs</li>
 </ul>
-<p>Nothing about a graph definition (a set of tuples) defines how to plot the nodes of a graph, so One question we might consider asking is: <strong><em>How can we efficiently plot graphs in a visually satisfactory way?</em></strong> If A graph is planar, how can we plot it to reflect that structure? If a graph is not planar, what is the most flattering way we can play the nodes? We will assume that the graph has no self-connecting nodes, since if it does, it will not change how we should place nodes.</p>
+<p>Nothing about a graph definition (a set of tuples) defines how to plot the nodes of a graph, so we might consider asking is: <strong><em>How can we efficiently plot graphs in a visually satisfactory way?</em></strong> If A graph is planar, how can we plot it to reflect that structure? If a graph is not planar, what is the most flattering way we can play the nodes? We will assume that the graph has no self-connecting nodes, since if it does, it will not change how we should place nodes.</p>
 <h4 id="Intuitive-Behavior">Intuitive Behavior<a class="anchor-link" href="#Intuitive-Behavior">&#182;</a></h4><p>One intuitive path to take, is to use physicial phenomenon to move the nodes into an optimal place.</p>
 <p>Recall some governing force equations that will be useful:</p>
 <ul>
 <li>Spring Force $$F_s=kx$$</li>
-<li>Electrostatic Force $$F_e=Q\frac{q_1q_2}{r^2}$$</li>
-<li>Gravitational Force $$F_g=mg$$</li>
+<li>Electrostatic Force $$F_e=Q\frac{q_1q_2}{r^2}$$<!--  - Gravitational Force $$F_g=mg$$ --></li>
 </ul>
-<p>The nodes can be modeled as charged particles, and the connections as springs. In this sense, starting from random positions the nodes will have the freedom to equalize and spread out, but be constrained by the edge connections. As the nodes move around and equlize, the gravitational force can help to ensure that the graph in whole stays in the same place.</p>
+<p>The nodes can be modeled as charged particles, and the connections as springs. In this sense, starting from random positions the nodes will have the freedom to equalize and spread out, but be constrained by the edge connections. 
+<!-- As the nodes move around and equlize, the gravitational force can help to ensure that the graph in whole stays in the same place. --></p>
 <p>Here is the general idea:</p>
 <p><img src="flow_diagram.png" alt=""></p>
 <p>So how should we define $q$ and $m$? Intuitively, we want the vertices to be more "free" the less connected they are, and when a node is very connected, we want it to have more inertia. Luckily, there is already convemtional notation for this!</p>
 <p><strong>Definition 5</strong> The <em>degree</em> of node $A$ in a graph $G$ is the number of nodes that are connected to $A$, and is notated $\text{deg}(A)$.</p>
 <h4 id="Moving-the-Nodes-with-Newton's-2nd-Law">Moving the Nodes with Newton's 2nd Law<a class="anchor-link" href="#Moving-the-Nodes-with-Newton's-2nd-Law">&#182;</a></h4><p>In order to translate forces ot movement, we need Newton's Second Law.</p>
-<p>Let $\Delta t$ be the time step of the simulation. For each node $A$, we can use the net force on $A$ to recursively approximate its $j+1^{\text{st}}$ displacement, $\Delta \vec{d}_{j+1}$:</p>
+<p>Let $\Delta t$ be the time step of the simulation. For each node $A$, we can use the net force on $A$ to recursively approximate its $j^{\text{th}}$ displacement, $\Delta \vec{d}_{j}$:</p>
 \begin{align*}
          &amp; \sum \vec{F}(A)=m\vec{a}= \operatorname{deg}(A) \frac{d^2}{dt^{2}} \vec{d}\\
 \implies &amp; \frac{\sum\vec{F}(A)}{\operatorname{deg}(A)}
-           =\frac{d^2}{dt^{2}} \vec{d}\approx \frac{1}{\Delta t^2}\left(\Delta \vec{d}_{j-1}-2\Delta \vec{d}_{j}+\Delta \vec{d}_{j+1}\right)\\
-\implies &amp; \Delta \vec{d}_{j+1}\approx \frac{\Delta t^2}{\deg(A)}\sum\vec{F}(A)-\Delta \vec{d}_{j-1}+2\Delta \vec{d}_{j}.
+           =\frac{d^2}{dt^{2}} \vec{d}\approx \frac{1}{\Delta t^2}\left(\Delta \vec{d}_{j}-2\Delta \vec{d}_{j-1}+\Delta \vec{d}_{j-2}\right)\\
+\implies &amp; \Delta \vec{d}_{j+1}\approx \frac{\Delta t^2}{\deg(A)}\sum\vec{F}(A)-\Delta \vec{d}_{j-2}+2\Delta \vec{d}_{j-1}.
 \end{align*}<h4 id="Finding-the-Net-Force-on-a-Node">Finding the Net Force on a Node<a class="anchor-link" href="#Finding-the-Net-Force-on-a-Node">&#182;</a></h4><p>In order to use Newton's Second Law, we need to find $\sum \vec{F}$, the net force on node $A$.</p>
 <p>For each node $A$, define</p>
 <ul>
@@ -13159,19 +13159,25 @@ The $K_5$ graph is not planar:</p>
 </ul>
 <p>Then for each $B$ in $\mathcal{X}$, and $C$ in $\mathcal{Y}$,
 \begin{align*}
-\vec{F}_g(A) &amp; =-g\deg(A)\frac{\vec{A}}{\|A\|},\\
 \vec{F}_e(A,B) &amp; =Q\frac{\deg(A)\deg(B)}{\|\vec{AB}\|^2}\frac{\vec{AB}}{\|\vec{AB}\|},\text{ and}\\
 \vec{F}_s(A,C) &amp; =k(\ell-\|\vec{AC}\|)\frac{\vec{A C}}{\|\vec{A B}\|},
 \end{align*}</p>
-<p>where $\ell&gt;0$ is the unstretched spring length; $Q&lt;0$ and $k&gt;0$ are the electric field and spring constants, respectively. Then
+<!-- \vec{F}_g(A) & =-g\deg(A)\frac{\vec{A}}{\|A\|},\\ $g<0$, -->
+
+<p>where $\ell&gt;0$ is the unstretched spring length; $Q&lt;0$ and $k&gt;0$ are the electric field, and spring constants, respectively. Then
 $$\sum\vec{F}(A)=\vec{F}_g(A)+\sum_{B\in\mathcal{X}}\vec{F}_e(A,B)+\sum_{C\in \mathcal{Y}}\vec{F}_s(A,C).$$</p>
 <h4 id="The-Master-Equation">The Master Equation<a class="anchor-link" href="#The-Master-Equation">&#182;</a></h4><p>We can now define precisely the change made to each node during each time step.</p>
 \begin{align*}
-\sum\vec{F}(A) &amp; = \vec{F}_g(A)+\sum_{B\in\mathcal{X}}\vec{F}_e(A,B)+\sum_{C\in \mathcal{Y}}\vec{F}_s(A,C)\\
- &amp; = -g\deg(A)\frac{\vec{A}}{\|A\|}+\sum_{B\in\mathcal{X}}Q\frac{\deg(A)\deg(B)}{\|\vec{AB}\|^2}\frac{\vec{AB}}{\|\vec{AB}\|}+\sum_{C\in \mathcal{Y}}k(\ell-\|\vec{AC}\|)\frac{\vec{A C}}{\|\vec{A B}\|},\\
-\end{align*}<p>which implies that
-$$\Delta \vec{d}_{j+1} \approx \frac{-g\Delta t^2\vec{A}}{\|A\|}+ \sum_{B\in\mathcal{X}}\left(Q\frac{\Delta t^2\deg(B)}{\|\vec{AB}\|^2}\frac{\vec{AB}}{\|\vec{AB}\|}\right)+\sum_{C\in \mathcal{Y}}\left(\frac{k\Delta t^2(\ell-\|\vec{AC}\|)\vec{A C}}{\deg(A)\|\vec{A B}\|}\right)-\Delta \vec{d}_{j-1}+2\Delta \vec{d}_{j}.$$</p>
+\sum\vec{F}(A) &amp; = \sum_{B\in\mathcal{X}}\vec{F}_e(A,B)+\sum_{C\in \mathcal{Y}}\vec{F}_s(A,C)\\
+ &amp; = \sum_{B\in\mathcal{X}}Q\frac{\deg(A)\deg(B)}{\|\vec{AB}\|^2}\frac{\vec{AB}}{\|\vec{AB}\|}+\sum_{C\in \mathcal{Y}}k(\ell-\|\vec{AC}\|)\frac{\vec{A C}}{\|\vec{A B}\|},\\
+\end{align*}<!-- \begin{align*}
+\sum\vec{F}(A) & = \vec{F}_g(A)+\sum_{B\in\mathcal{X}}\vec{F}_e(A,B)+\sum_{C\in \mathcal{Y}}\vec{F}_s(A,C)\\
+ & = g\deg(A)\frac{\vec{A}}{\|A\|}+\sum_{B\in\mathcal{X}}Q\frac{\deg(A)\deg(B)}{\|\vec{AB}\|^2}\frac{\vec{AB}}{\|\vec{AB}\|}+\sum_{C\in \mathcal{Y}}k(\ell-\|\vec{AC}\|)\frac{\vec{A C}}{\|\vec{A B}\|},\\
+\end{align*} -->
 
+<p>which implies that
+$$\Delta \vec{d}_{j} \approx \sum_{B\in\mathcal{X}}\left(Q\frac{\Delta t^2\deg(B)}{\|\vec{AB}\|^2}\frac{\vec{AB}}{\|\vec{AB}\|}\right)+\sum_{C\in \mathcal{Y}}\left(\frac{k\Delta t^2(\ell-\|\vec{AC}\|)\vec{A C}}{\deg(A)\|\vec{A B}\|}\right)-\Delta \vec{d}_{j-2}+2\Delta \vec{d}_{j-1}.$$</p>
+<!-- $$\Delta \vec{d}_{j} \approx \frac{g\Delta t^2\vec{A}}{\|A\|}+ \sum_{B\in\mathcal{X}}\left(Q\frac{\Delta t^2\deg(B)}{\|\vec{AB}\|^2}\frac{\vec{AB}}{\|\vec{AB}\|}\right)+\sum_{C\in \mathcal{Y}}\left(\frac{k\Delta t^2(\ell-\|\vec{AC}\|)\vec{A C}}{\deg(A)\|\vec{A B}\|}\right)-\Delta \vec{d}_{j-2}+2\Delta \vec{d}_{j-1}.$$ -->
 </div>
 </div>
 </div>
