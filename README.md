@@ -20,7 +20,7 @@ or
 $ python3 -m pip install --user graphPlot --upgrade
 ```
 
-
+![](animatino.gif)
 
 **TODO:**
 - [ ] Upgrade to "second order backwards" approximation in `SpringBoard`

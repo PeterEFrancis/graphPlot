@@ -22,7 +22,7 @@ class Node(object):
         self.degree = 0 if connections is None else len(connections)
         self.pos = np.array([0.0, 0.0]) if pos is None else pos
         self.pastPos = np.array([[0.0,0.0],[0.0,0.0]])
-
+        self.fixed = False
 
     def set_coord(self, pos: np.array):
         """
@@ -104,14 +104,14 @@ class SpringBoard(object):
         """
 
         # find list of supplied node IDs
-        nodeIDs = list(nodesDict.keys())
+        self.nodeIDs = list(nodesDict.keys())
         for nodeID in nodesDict:
-            nodeIDs += nodesDict[nodeID]
-        nodeIDs = sorted(list(set(nodeIDs)))
+            self.nodeIDs += nodesDict[nodeID]
+        self.nodeIDs = sorted(list(set(self.nodeIDs)))
 
 
         # ensure that node labels are the first positive integers
-        if list(range(1, len(nodeIDs) + 1)) != nodeIDs:
+        if list(range(1, len(self.nodeIDs) + 1)) != self.nodeIDs:
             raise ValueError("Node labels must be consecutive positive inetegers that include 1.")
         # ensure dictionary does not map a node to itself
         for nodeID in nodesDict:
@@ -129,27 +129,27 @@ class SpringBoard(object):
         # deal with nodePosDict if it is not empty
         if len(nodePosDict) != 0:
             # ensure that nodePosDict defines a position for every node specified in `nodesDict`
-            if sorted(list(nodePosDict.keys())) != nodeIDs:
+            if sorted(list(nodePosDict.keys())) != self.nodeIDs:
                 raise ValueError("`nodePosDict` must define positions for every node specified in `nodesDict`")
             # ensure that no two positions are the same
-            if len(set(nodePosDict.values())) != len(nodeIDs):
+            if len(set(nodePosDict.values())) != len(self.nodeIDs):
                 raise ValueError("No two nodes may have the same position")
 
             # set list of node objects
-            self.nodes = [Node(nodeID, pos = np.array(nodePosDict[nodeID], dtype=np.float)) for nodeID in nodeIDs]
+            self.nodes = [Node(nodeID, pos = np.array(nodePosDict[nodeID], dtype=np.float)) for nodeID in self.nodeIDs]
 
         # otherwise, no positions are supplied
         else:
-            self.nodes = [Node(nodeID) for nodeID in nodeIDs]
+            self.nodes = [Node(nodeID) for nodeID in self.nodeIDs]
             self.encircle_nodes()
 
 
         # create a bidirectional dictionary of node numbers
-        for nodeID in nodeIDs:
+        for nodeID in self.nodeIDs:
             if nodeID not in nodesDict:
                 nodesDict[nodeID] = []
         graphNodesDict = {}
-        for nodeIDa in nodeIDs:
+        for nodeIDa in self.nodeIDs:
             connected_to_a = lambda nodeIDb: (nodeIDa in nodesDict[nodeIDb]) or (nodeIDb in nodesDict[nodeIDa])
             graphNodesDict[nodeIDa] = [nodeIDb for nodeIDb in nodesDict if (connected_to_a(nodeIDb))]
 
@@ -172,7 +172,7 @@ class SpringBoard(object):
             deltaT - simulation time step
         """
 
-        for node in self.nodes:
+        for node in filter(lambda node: not node.fixed, self.nodes):
             change = np.array([0.0, 0.0])
 
             # add the spring forces
@@ -312,8 +312,18 @@ class SpringBoard(object):
         start = False
 
         return animation.FuncAnimation(fig, _next_frame, fargs = (start), frames=numFrames, interval=30)
-
-
+    
+    def get_fixed_nodes(self):
+        return list(filter(lambda node: node.fixed, self.nodes))        
+    
+    def fix_nodes(self, nodeIDList: list):
+        for nodeID in nodeIDList:
+            if nodeID not in self.nodeIDs:
+                raise ValueError(f"Node ID {nodeID} does not match a node in this SpringBoard. As a result, no nodes were fixed.")
+        for nodeID in nodeIDList:
+            self.nodes[nodeID - 1].fixed = True
+                
+                
 class Graph(object):
     def __init__(self, nodesDict: dict, isDigraph: bool = False):
         """
