@@ -26,7 +26,9 @@ $ python3 -m pip install --user graphPlot --upgrade
 - [ ] Upgrade to "second order backwards" approximation in `SpringBoard`
 - [X] Add custom start position to `SpringBoard`
 - [X] Add animation maker
+- [X] Add fixed node settings
 - [ ] Make specific physical examples
+- [ ] Update Examples in docs
 
 **Long term TODO:**
 - [ ] add smart detect of max size for animation
