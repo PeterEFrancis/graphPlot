@@ -21,7 +21,7 @@ class Node(object):
         self.connections = [] if connections is None else connections
         self.degree = 0 if connections is None else len(connections)
         self.pos = np.array([0.0, 0.0]) if pos is None else pos
-        self.pastPos = np.array([[0.0,0.0],[0.0,0.0]])
+        self.disp = np.array([0.0, 0.0])
         self.fixed = False
 
     def set_coord(self, pos: np.array):
@@ -63,9 +63,9 @@ class Node(object):
         Return:
             Distance to node
         """
-        return np.sqrt((self.pos[0] - node.pos[0]) ** 2 + (self.pos[1] - node.pos[1]) ** 2)
+        # np.sqrt((self.pos[0] - node.pos[0]) ** 2 + (self.pos[1] - node.pos[1]) ** 2)
+        return np.sqrt(np.sum((self.pos - node.pos) ** 2))
 
-    # how would you check the connections being equal?
     def __eq__(self, node: "Node"):
         """
         Return if equal to node
@@ -85,21 +85,20 @@ class Node(object):
         """
         retrurn string representation of (self) node
         """
-        return f"<Node {self.ID} @ ({round(self.pos[0],3)},{round(self.pos[1],3)})>"
+        return f"<{self.ID} @ ({round(self.pos[0],3)},{round(self.pos[1],3)})>"
 
 
 
 class SpringBoard(object):
-    def __init__(self, nodesDict: Dict[int, List[int]], k: float, Q: float, nodePosDict: Dict[int, Tuple[float, float]] = {}):
+    def __init__(self, nodesDict: Dict[int, List[int]], k: float = 1, Q: float = -1, nodePosDict: Dict[int, Tuple[float, float]] = {}):
         """
         Construct a SpringBoard object.
         If the nodes are all centered at the orgin, spread them out.
 
         Args:
             nodesDict - an adjacency dictionary of first positive integers
-            k - coefficient of spring
-            Q - coefficient of electric field
-            g - gravitational coefficient
+            k - (optional, 1 by default) coefficient of spring
+            Q - (optional, -1 by default) coefficient of electric field
             nodePosDict - (optional) dictionary specifying the position of nodes
         """
 
@@ -112,28 +111,36 @@ class SpringBoard(object):
 
         # ensure that node labels are the first positive integers
         if list(range(1, len(self.nodeIDs) + 1)) != self.nodeIDs:
-            raise ValueError("Node labels must be consecutive positive inetegers that include 1.")
+            raise ValueError("Node labels must be consecutive positive inetegers that include 1. Currently, node labels are " + str(self.nodeIDs))
         # ensure dictionary does not map a node to itself
         for nodeID in nodesDict:
             if nodeID in nodesDict[nodeID]:
-                raise ValueError("Node in `nodesDict` maps to itself: not allowed.")
-        # ensure that k > 0, Q < 0, and g < 0
+                raise ValueError(f"Node in `nodesDict` maps {nodeID} to itself: not allowed.")
+        # ensure that k > 0, Q < 0
         if (k <= 0):
             raise ValueError("k must be positive.")
         if (Q >= 0):
             raise ValueError("Q must be negative.")
-        # if (g >= 0):
-        #     raise ValueError("g must be negative.")
 
 
         # deal with nodePosDict if it is not empty
         if len(nodePosDict) != 0:
-            # ensure that nodePosDict defines a position for every node specified in `nodesDict`
-            if sorted(list(nodePosDict.keys())) != self.nodeIDs:
-                raise ValueError("`nodePosDict` must define positions for every node specified in `nodesDict`")
             # ensure that no two positions are the same
-            if len(set(nodePosDict.values())) != len(self.nodeIDs):
+            if len(set(nodePosDict.values())) != len(nodePosDict.values()):
                 raise ValueError("No two nodes may have the same position")
+            # ensure that only nodeIDs are given positions
+            for nodeID in nodePosDict:
+                if nodeID not in self.nodeIDs:
+                    raise ValueError(f"{nodeID} is not a node in this SpringBoard")
+
+            # make sure that nodePosDict defines a position for every node specified in `nodesDict`
+            if sorted(list(nodePosDict.keys())) != self.nodeIDs:
+                for nodeID in self.nodeIDs:
+                    if nodeID not in nodePosDict:
+                        testPos = (r.uniform(0,1), r.uniform(0,1))
+                        while testPos in nodePosDict.keys():
+                            testPos = (r.uniform(0,1), r.uniform(0,1))
+                        nodePosDict[nodeID] = testPos
 
             # set list of node objects
             self.nodes = [Node(nodeID, pos = np.array(nodePosDict[nodeID], dtype=np.float)) for nodeID in self.nodeIDs]
@@ -144,25 +151,26 @@ class SpringBoard(object):
             self.encircle_nodes()
 
 
-        # create a bidirectional dictionary of node numbers
+        # fill in mapped to but not mapped from ids
+        self.nodesDict = nodesDict
         for nodeID in self.nodeIDs:
-            if nodeID not in nodesDict:
-                nodesDict[nodeID] = []
-        graphNodesDict = {}
+            if nodeID not in self.nodesDict:
+                self.nodesDict[nodeID] = []
+        # create a bidirectional dictionary of node numbers
+        self.graphNodesDict = {}
         for nodeIDa in self.nodeIDs:
             connected_to_a = lambda nodeIDb: (nodeIDa in nodesDict[nodeIDb]) or (nodeIDb in nodesDict[nodeIDa])
-            graphNodesDict[nodeIDa] = [nodeIDb for nodeIDb in nodesDict if (connected_to_a(nodeIDb))]
+            self.graphNodesDict[nodeIDa] = [nodeIDb for nodeIDb in nodesDict if (connected_to_a(nodeIDb))]
 
         # add connections to nodes using dictionary and edges to springboard object
         self.edges = []
         for nodeA in self.nodes:
-            nodeA.add_connections([self.nodes[nodeIDb - 1] for nodeIDb in graphNodesDict[nodeA.ID]])
-            self.edges += [(nodeA, self.nodes[nodeIDb - 1]) for nodeIDb in graphNodesDict[nodeA.ID] if nodeA.ID  < nodeIDb]
+            nodeA.add_connections([self.nodes[nodeIDb - 1] for nodeIDb in self.graphNodesDict[nodeA.ID]])
+            self.edges += [(nodeA, self.nodes[nodeIDb - 1]) for nodeIDb in self.graphNodesDict[nodeA.ID] if nodeA.ID  < nodeIDb]
 
         # set spring and field constants
         self.k = k
         self.Q = Q
-        # self.g = g
 
     def _increment(self, deltaT: float):
         """
@@ -173,33 +181,25 @@ class SpringBoard(object):
         """
 
         for node in filter(lambda node: not node.fixed, self.nodes):
-            change = np.array([0.0, 0.0])
-
-            # add the spring forces
-            for connection in node.connections:
-                deltaD = deltaT ** 2 * self.k * (1 - node.distance_to(connection)) / node.degree
-                vec = node.pos - connection.pos
-                vec *= deltaD / np.sqrt(vec[0] ** 2 + vec[1] ** 2)
-                change += vec
 
             # add the repellant forces
+            rep_change = np.array([0.0, 0.0])
             for other in self.nodes:
-                if node != other:
-                    deltaD = self.Q * (deltaT / node.distance_to(other)) ** 2 * other.degree
-                    vec = other.pos - node.pos
-                    vec *= deltaD / np.sqrt(vec[0] ** 2 + vec[1] ** 2)
-                    change += vec
+                if other != node:
+                    rep_change += other.degree * (other.pos - node.pos) / (node.distance_to(other)**3)
 
-            # add gravitational force
-            # change += node.pos * node.degree * self.g / np.sqrt(0.001 + sum(node.pos ** 2))
+            # add the spring forces
+            spring_change = np.array([0.0, 0.0])
+            for connection in node.connections:
+                dist = node.distance_to(connection)
+                spring_change += (connection.pos - node.pos) * (dist - 1) / (node.degree * dist)
 
-            # set displacemnts
-            node.pos += change
+            node.disp = deltaT**2 * (self. Q * rep_change + self.k * spring_change)
 
-            # the "second order backwards" appromimation step
-            # node.pos += node.pastPos[0] - node.pastPos[1]
-            # node.pastPos[1] = node.pastPos[0].copy()
-            # node.pastPos[0] = node.pos.copy()
+        # set displacemnts
+        for node in filter(lambda node: not node.fixed, self.nodes):
+            node.pos = node.pos + node.disp
+            node.disp = np.array([0.0, 0.0])
 
     def move(self, deltaT: float, n: int):
         """
@@ -213,14 +213,15 @@ class SpringBoard(object):
         for _ in range(n):
             self._increment(deltaT)
 
-    def plot(self, saveAs: str = ""):
+    def plot(self, size: Tuple[int, int] = (7,7), saveAs: str = ""):
         """
         Plot the graph
 
         Args:
+            size - (optional, (7,7) by default) size tuple for plot image
             saveAs - (optional) file path to save
         """
-        fig, ax = plt.subplots(figsize=(7, 7))
+        fig, ax = plt.subplots(figsize=size)
         ax.set_aspect("equal")
         ax.autoscale()
         for (nodeA, nodeB) in self.edges:
@@ -232,20 +233,6 @@ class SpringBoard(object):
         plt.show()
         if saveAs != "":
             plt.savefig(saveAs)
-
-    def move_plot_save(self, deltaT: float, n: int, saveAs: str):
-        """
-        Move forward in simulation and save image after each timestep
-
-        Args:
-            deltaT - simulation time step
-            n - number of time steps
-            saveAs - folder path to save images
-        """
-        for i in range(n):
-            self.plot(f"{saveAs}/{i}")
-            self._increment(deltaT)
-        self.plot(f"{saveAs}/{n}")
 
     def settle(self, deltaT: float):
         """
@@ -312,18 +299,40 @@ class SpringBoard(object):
         start = False
 
         return animation.FuncAnimation(fig, _next_frame, fargs = (start), frames=numFrames, interval=30)
-    
+
     def get_fixed_nodes(self):
-        return list(filter(lambda node: node.fixed, self.nodes))        
-    
-    def fix_nodes(self, nodeIDList: list):
+        """
+        find list of nodes that are fixed
+
+        Return:
+            list of node objects that are fixes
+        """
+        return list(filter(lambda node: node.fixed, self.nodes))
+
+    def set_node_pos(self, nodeID: int, pos: Tuple[float, float]):
+        """
+        Set a node position
+
+        Args:
+            nodeID - ID integer of the node to be set
+            pos - tuple of floats defining the position to set the node
+        """
+        self.nodes[nodeID - 1].pos = np.array(pos)
+
+    def fix_nodes(self, nodeIDList: List[int]):
+        """
+        fix node positions
+
+        Args:
+            nodeIDList - list of nodeID ints to be fixed
+        """
         for nodeID in nodeIDList:
             if nodeID not in self.nodeIDs:
                 raise ValueError(f"Node ID {nodeID} does not match a node in this SpringBoard. As a result, no nodes were fixed.")
         for nodeID in nodeIDList:
             self.nodes[nodeID - 1].fixed = True
-                
-                
+
+
 class Graph(object):
     def __init__(self, nodesDict: dict, isDigraph: bool = False):
         """
@@ -334,34 +343,24 @@ class Graph(object):
             isDigraph (bool) - boolean value to declare Graph type
         """
 
-        self.nodesDict = nodesDict
         self.isDigraph = isDigraph
 
-        # check to make sure that the keys and values are not skipping any
-        # positive integers and that they are the first positive integers
-        testIDs = []
-        for key in nodesDict:
-            testIDs += [key] + [value for value in nodesDict[key]]
-        if set(testIDs) != set(range(1, len(list(set(testIDs))) + 1)):
-            raise ValueError("Error in node keys and values: " + "missing number or disallowed character.")
-
-        # make sure that the nodes dictionary is bidirectional
-        graphNodesDict = {}
-        connectedToA = lambda nodeB: (nodeA in nodesDict[nodeB]) or (nodeB in nodesDict[nodeA])
-        for nodeA in nodesDict:
-            graphNodesDict[nodeA] = [nodeB for nodeB in nodesDict if (connectedToA(nodeB) and nodeA != nodeB)]
-
-        # make adjacency matrix
-        if isDigraph:
-            self.adjacencyMatrix = np.vstack([np.array([1 if nodeB in self.nodesDict[nodeA] else 0 for nodeB in self.nodesDict]) for nodeA in self.nodesDict]).T
-        else:
-            self.adjacencyMatrix = np.vstack([np.array([1 if nodeB in graphNodesDict[nodeA] else 0 for nodeB in graphNodesDict]) for nodeA in graphNodesDict]).T
-
-
         # use SpringBoard to find good coordinates
-        self.springBoard = SpringBoard(graphNodesDict, 1, -1, -0.001)
+        self.springBoard = SpringBoard(nodesDict, 1, -1)
         self.springBoard.move(0.1, 8000)
         self._normalize_pos()
+
+        self.nodesDict = dict(self.springBoard.nodesDict)
+
+        self.graphNodesDict = dict(self.springBoard.graphNodesDict)
+
+        # make adjacency matrix
+        if self.isDigraph:
+            self.adjacencyMatrix = np.vstack([np.array([1 if nodeB in self.nodesDict[nodeA] else 0 for nodeB in self.nodesDict]) for nodeA in self.nodesDict]).T
+        else:
+            self.adjacencyMatrix = np.vstack([np.array([1 if nodeB in self.graphNodesDict[nodeA] else 0 for nodeB in self.graphNodesDict]) for nodeA in self.graphNodesDict]).T
+
+
 
     def _normalize_pos(self):
         """

@@ -1,36 +1,24 @@
 # graphPlot
 
-![](docs/examples.png)
+![](docs/img/examples.png)
 
 A python module for plotting (directed) Graphs using a simulation of springs
 and charged particles
 
-See [info](https://peterefrancis.github.io/graphPlot/)
- for a **mathematical explanation**, **examples**, and **class definitions**.
+See the [docs](https://peterefrancis.github.io/graphPlot/)
+ for more info including **mathematical explanation**, **examples**, and **class definitions**.
 
 You can import this module with PIP.
 
 ```bash
-$ pip install graphPlot --upgrade
+$ python3 -m pip install graphPlot --upgrade
 ```
 
-or
+![](docs/img/animation.gif)
 
-```bash
-$ python3 -m pip install --user graphPlot --upgrade
-```
-
-![](animation.gif)
 
 **TODO:**
 - [ ] Upgrade to "second order backwards" approximation in `SpringBoard`
-- [X] Add custom start position to `SpringBoard`
-- [X] Add animation maker
-- [X] Add fixed node settings
-- [ ] Make specific physical examples
-- [ ] Update Examples in docs
-
-**Long term TODO:**
 - [ ] add smart detect of max size for animation
 - [ ] Change `_increment()` to use matrix operations
 - [ ] add fixed node capabilities
