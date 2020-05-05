@@ -360,8 +360,6 @@ class Graph(object):
         else:
             self.adjacencyMatrix = np.vstack([np.array([1 if nodeB in self.graphNodesDict[nodeA] else 0 for nodeB in self.graphNodesDict]) for nodeA in self.graphNodesDict]).T
 
-
-
     def _normalize_pos(self):
         """
         Normalize the positions springboard nodes for plotting
