@@ -6,7 +6,6 @@ import random as r
 from typing import *
 
 
-
 class Node(object):
     def __init__(self, ID: int = -1, connections: list = None, pos: np.array = None):
         """
@@ -22,6 +21,7 @@ class Node(object):
         self.degree = 0 if connections is None else len(connections)
         self.pos = np.array([0.0, 0.0]) if pos is None else pos
         self.disp = np.array([0.0, 0.0])
+        self.prevDisp = np.array([0.0, 0.0])
         self.fixed = False
 
     def set_coord(self, pos: np.array):
@@ -143,7 +143,7 @@ class SpringBoard(object):
                         nodePosDict[nodeID] = testPos
 
             # set list of node objects
-            self.nodes = [Node(nodeID, pos = np.array(nodePosDict[nodeID], dtype=np.float)) for nodeID in self.nodeIDs]
+            self.nodes = [Node(nodeID, pos = np.array(nodePosDict[nodeID], dtype=float)) for nodeID in self.nodeIDs]
 
         # otherwise, no positions are supplied
         else:
@@ -198,8 +198,10 @@ class SpringBoard(object):
 
         # set displacemnts
         for node in filter(lambda node: not node.fixed, self.nodes):
-            node.pos = node.pos + node.disp
+            node.pos = node.pos + node.disp + node.prevDisp
+            node.prevDisp = node.disp
             node.disp = np.array([0.0, 0.0])
+            
 
     def move(self, deltaT: float, n: int):
         """
@@ -431,3 +433,16 @@ class Graph(object):
         self.springBoard.random_reset()
         self.springBoard.move(0.1,8000)
         self._normalize_pos()
+
+
+
+
+
+
+
+
+
+
+
+
+
