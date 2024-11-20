@@ -4,7 +4,6 @@
 - [ ] add smart detect of max size for animation
 - [ ] Change `_increment()` to use matrix operations
 - [ ] add fixed node capabilities
-- [ ] Gravitational force is just to take care of disconnected graphs - is it necessary?
 - [ ] Make normalization "less invasive"
 - [ ] Cythonize
 - [ ] Integrate planarity tests
